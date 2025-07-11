@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Add New User</h2>
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">
+        User Details
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.add_user') }}">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required value="{{ username if username else '' }}">
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required value="{{ email if email else '' }}">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required minlength="6">
+            </div>
+            <div class="mb-3">
+                <label for="role_id" class="form-label">Role</label>
+                <select class="form-select" id="role_id" name="role_id" required>
+                    <option value="">-- Select Role --</option>
+                    {% for role in roles %}
+                        <option value="{{ role.id }}">{{ role.name.capitalize() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                <label class="form-check-label" for="is_active">Active Account</label>
+            </div>
+            <button type="submit" class="btn btn-success">Create User</button>
+            <a href="{{ url_for('admin.manage_users') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,316 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Quiz Session: <span id="quizTitle">{{ quiz_data.title }}</span></h2>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                Contestants
+            </div>
+            <div class="card-body">
+                <ul class="list-group" id="contestantList">
+                    {% for contestant in quiz_data.contestants %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center" data-contestant-id="{{ contestant.id }}">
+                        {{ contestant.name }}
+                        <span class="badge bg-secondary rounded-pill score-badge" id="score-{{ contestant.id }}">{{ contestant.score }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                Actions
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <button type="button" class="btn btn-info" id="customPrevQuestionBtn">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span> Previous
+                    </button>
+                    <button type="button" class="btn btn-info" id="customNextQuestionBtn">
+                        Next <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    </button>
+                </div>
+
+                <button type="button" class="btn btn-success w-100 mb-2" id="markQuizCompleteBtn">Mark Quiz Complete for Selected Contestant</button>
+                <a href="{{ url_for('moderator.dashboard') }}" class="btn btn-secondary w-100">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                Questions
+            </div>
+            <div class="card-body">
+                <div id="quizQuestionsCarousel" class="carousel slide" data-bs-interval="false">
+                    <div class="carousel-inner">
+                        {% for question in quiz_data.questions %}
+                        <div class="carousel-item {% if loop.first %}active{% endif %} text-center" data-question-id="{{ question.id }}">
+                            <h5>Question {{ loop.index }}:</h5>
+                            <p class="lead">{{ question.text }}</p>
+                            <div class="options mt-3 d-flex flex-column align-items-center">
+                                <div class="form-check d-flex justify-content-center">
+                                    <input class="form-check-input question-option" type="radio" name="question_{{ question.id }}" id="optionA_{{ question.id }}" value="a">
+                                    <label class="form-check-label" for="optionA_{{ question.id }}">
+                                        A. {{ question.options.a }}
+                                    </label>
+                                </div>
+                                <div class="form-check d-flex justify-content-center">
+                                    <input class="form-check-input question-option" type="radio" name="question_{{ question.id }}" id="optionB_{{ question.id }}" value="b">
+                                    <label class="form-check-label" for="optionB_{{ question.id }}">
+                                        B. {{ question.options.b }}
+                                    </label>
+                                </div>
+                                <div class="form-check d-flex justify-content-center">
+                                    <input class="form-check-input question-option" type="radio" name="question_{{ question.id }}" id="optionC_{{ question.id }}" value="c">
+                                    <label class="form-check-label" for="optionC_{{ question.id }}">
+                                        C. {{ question.options.c }}
+                                    </label>
+                                </div>
+                                <div class="form-check d-flex justify-content-center">
+                                    <input class="form-check-input question-option" type="radio" name="question_{{ question.id }}" id="optionD_{{ question.id }}" value="d">
+                                    <label class="form-check-label" for="optionD_{{ question.id }}">
+                                        D. {{ question.options.d }}
+                                    </label>
+                                </div>
+                            </div>
+                            {# ADDED 'd-none' CLASS HERE to hide it initially #}
+                            <div class="correct-answer-display mt-3 **d-none**">
+                                <span class="badge bg-dark">Correct Answer: {{ question.correct_answer.upper() }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#quizQuestionsCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#quizQuestionsCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // === IMPORTANT: READ THIS FIRST ===
+    // For the carousel and other JavaScript-driven features to work,
+    // THE SUBRESOURCE INTEGRITY (SRI) ERROR for Popper.js/Bootstrap.js MUST BE RESOLVED.
+    // Check your browser's Developer Console (F12 -> Console tab) for red errors related to scripts being blocked.
+    // If you see an SRI error, fix it by either removing the 'integrity' and 'crossorigin' attributes
+    // from the CDN links in your 'layout.html', or by generating and using the correct integrity hashes.
+    // Without Bootstrap's core JavaScript loading, nothing will function as expected, including carousel control.
+    // ===================================
+
+    $(document).ready(function() {
+        let selectedContestantId = null;
+
+        // This object will store the selected answers for each contestant for each question.
+        // Structure: { contestant_id: { question_id: selected_option_value, ... } }
+        let contestantAnswers = {};
+
+        // Initialize the Bootstrap Carousel.
+        // **KEY FOR NO AUTO-SLIDING:** `interval: false` prevents automatic advancement.
+        // `ride: false` explicitly prevents auto-initiation of carousel cycling when page loads.
+        const quizCarouselElement = document.getElementById('quizQuestionsCarousel');
+        const quizCarousel = new bootstrap.Carousel(quizCarouselElement, {
+            interval: false,
+            ride: false
+        });
+
+        // --- Helper Function ---
+        // This function loads the previously recorded answer for the currently displayed question
+        // when a contestant is selected or when the carousel slides to a new question.
+        function loadCurrentQuestionAnswer() {
+            // Get the ID of the currently active question from its data-question-id attribute
+            const currentQuestionElement = $('#quizQuestionsCarousel .carousel-item.active');
+            const currentQuestionId = currentQuestionElement.data('question-id');
+
+            // Find the correct answer display for the current question
+            const correctAnswerDisplay = currentQuestionElement.find('.correct-answer-display');
+
+            // First, clear any pre-existing selections for this question's radio buttons
+            $(`input[name="question_${currentQuestionId}"]`).prop('checked', false);
+
+            // Hide the correct answer display when a new question loads
+            correctAnswerDisplay.addClass('d-none');
+
+            // If a contestant is selected AND they have an answer recorded for this question,
+            // then check the corresponding radio button AND show the correct answer display.
+            if (selectedContestantId && contestantAnswers[selectedContestantId] && contestantAnswers[selectedContestantId][currentQuestionId]) {
+                const savedOption = contestantAnswers[selectedContestantId][currentQuestionId];
+                $(`input[name="question_${currentQuestionId}"][value="${savedOption}"]`).prop('checked', true);
+                correctAnswerDisplay.removeClass('d-none'); // Show if answer was already recorded
+            }
+        }
+
+        // --- Event Handlers ---
+
+        // 1. Handle selection of a contestant from the list.
+        $('#contestantList li').on('click', function() {
+            // Visually highlight the selected contestant.
+            $('#contestantList li').removeClass('active list-group-item-primary');
+            $(this).addClass('active list-group-item-primary');
+
+            // Store the ID of the newly selected contestant.
+            selectedContestantId = $(this).data('contestant-id');
+            console.log('Selected Contestant:', selectedContestantId);
+
+            alert(`Contestant ${$(this).text().trim().split(' ')[0]} selected. You can now record answers.`);
+
+            // Load answers for the current question based on the newly selected contestant.
+            loadCurrentQuestionAnswer();
+        });
+
+        // 2. Control Carousel with Custom "Previous" and "Next" Buttons.
+        // These buttons are now explicitly linked to the carousel's JavaScript methods.
+        $('#customPrevQuestionBtn').on('click', function() {
+            quizCarousel.prev(); // Moves the carousel to the previous slide.
+        });
+
+        $('#customNextQuestionBtn').on('click', function() {
+            quizCarousel.next(); // Moves the carousel to the next slide.
+        });
+
+        // 3. Prevent accidental carousel slides when clicking radio buttons or their labels.
+        // This stops the click event from bubbling up to the carousel element itself.
+        $('.form-check').on('click', function(event) {
+            // Only stop propagation if the click target is the actual input or its label.
+            if ($(event.target).is('input.question-option') || $(event.target).is('label.form-check-label')) {
+                event.stopPropagation();
+            }
+        });
+
+        // 4. Handle a radio button being selected/changed for a question.
+        $('.question-option').on('change', function(event) {
+            // Ensure a contestant is selected before allowing an answer to be recorded.
+            if (!selectedContestantId) {
+                alert('Please select a contestant first!');
+                $(this).prop('checked', false); // Immediately uncheck the radio button.
+                event.stopImmediatePropagation(); // Stop all further event handlers for this event.
+                return false; // Prevent default action and stop propagation (jQuery shorthand).
+            }
+
+            const currentRadio = $(this); // Reference to the radio button that was just clicked.
+            const questionId = currentRadio.closest('.carousel-item').data('question-id'); // Get the question ID.
+            const selectedOption = currentRadio.val(); // Get the selected option's value (e.g., 'a', 'b').
+            const quizId = {{ quiz_data.quiz_id }}; // Get the quiz ID from Jinja2.
+
+            console.log(`Attempting to record answer: Contestant ${selectedContestantId}, Question ${questionId}, Option ${selectedOption}, Quiz ID: ${quizId}`);
+
+            // Optimistically update the local answers storage.
+            if (!contestantAnswers[selectedContestantId]) {
+                contestantAnswers[selectedContestantId] = {};
+            }
+            contestantAnswers[selectedContestantId][questionId] = selectedOption;
+
+            // Find the correct answer display for the current question and SHOW IT
+            currentRadio.closest('.carousel-item').find('.correct-answer-display').removeClass('d-none');
+
+            // Make an AJAX request to the backend to record the answer.
+            $.ajax({
+                url: "{{ url_for('moderator.record_answer') }}",
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    contestant_id: selectedContestantId,
+                    question_id: questionId,
+                    selected_option: selectedOption,
+                    quiz_id: quizId
+                }),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // Update the score displayed on the page.
+                        $(`#score-${selectedContestantId}`).text(response.new_score);
+                        console.log('Answer recorded successfully. New score:', response.new_score);
+                    } else {
+                        // If the backend indicates an error, revert the local state and hide display
+                        alert('Error recording answer: ' + response.message);
+                        console.error('Backend error:', response.message);
+                        delete contestantAnswers[selectedContestantId][questionId];
+                        currentRadio.prop('checked', false);
+                        currentRadio.closest('.carousel-item').find('.correct-answer-display').addClass('d-none'); // Re-hide on error
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle network or server communication errors.
+                    alert('AJAX Error: Could not reach server or server error. Check console for details.');
+                    console.error('AJAX error:', error, 'Response:', xhr.responseText);
+                    delete contestantAnswers[selectedContestantId][questionId];
+                    currentRadio.prop('checked', false);
+                    currentRadio.closest('.carousel-item').find('.correct-answer-display').addClass('d-none'); // Re-hide on error
+                }
+            });
+            // Critical: Stop the 'change' event from bubbling up to the carousel.
+            // This ensures choosing an answer does NOT trigger a carousel slide.
+            event.stopPropagation();
+        });
+
+        // 5. Handle the "Mark Quiz Complete" button click.
+        $('#markQuizCompleteBtn').on('click', function() {
+            if (!selectedContestantId) {
+                alert('Please select a contestant to mark their quiz as complete.');
+                return;
+            }
+
+            if (confirm('Are you sure you want to mark this contestant\'s quiz as complete? This action cannot be undone.')) {
+                $.ajax({
+                    url: "{{ url_for('moderator.submit_quiz_completion') }}",
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        contestant_id: selectedContestantId
+                    }),
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            alert(response.message);
+                            // Add a "Complete" badge for visual indication.
+                            $(`li[data-contestant-id="${selectedContestantId}"]`).append('<span class="ms-2 badge bg-success">Complete</span>');
+
+                            // Redirect to the quiz results page.
+                            if (response.quiz_id) {
+                                window.location.href = "{{ url_for('moderator.quiz_results', quiz_id=0) }}".replace('0', response.quiz_id);
+                            } else {
+                                window.location.href = "{{ url_for('moderator.quiz_results', quiz_id=quiz_data.quiz_id) }}";
+                            }
+                        } else {
+                            alert('Error marking quiz complete: ' + response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('AJAX Error: ' + xhr.responseText);
+                        console.error('AJAX error:', error);
+                    }
+                });
+            }
+        });
+
+        // 6. Listen for the Bootstrap carousel's 'slid.bs.carousel' event.
+        // This event fires *after* a carousel transition has finished (i.e., after a Next/Previous click).
+        // We use it to update the radio button selections for the newly displayed question.
+        $('#quizQuestionsCarousel').on('slid.bs.carousel', function () {
+            loadCurrentQuestionAnswer();
+        });
+
+        // Initial setup when the page first loads to hide all correct answers
+        // Loop through each question item and hide its correct answer display
+        $('#quizQuestionsCarousel .carousel-item').each(function() {
+            $(this).find('.correct-answer-display').addClass('d-none');
+        });
+        // Call loadCurrentQuestionAnswer for the active item, in case a contestant is pre-selected and has an answer
+        // This is only if your initial state allows a contestant to be active and have answers.
+        // If not, the correct answer for the first question will remain hidden until an answer is chosen for it.
+        loadCurrentQuestionAnswer();
+    });
+</script>
+{% endblock %}

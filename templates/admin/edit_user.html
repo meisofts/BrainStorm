@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Edit User: {{ user.username }}</h2>
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">
+        User Details
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.edit_user', user_id=user.id) }}">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="role_id" class="form-label">Role</label>
+                <select class="form-select" id="role_id" name="role_id" required
+                    {% if user.id == current_user.id and current_user.has_role('superadmin') %} disabled title="Cannot change your own role as Superadmin" {% endif %}>
+                    {% for role in roles %}{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Edit User: {{ user.username }}</h2>
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">
+        User Details
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.edit_user', user_id=user.id) }}">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="role_id" class="form-label">Role</label>
+                <select class="form-select" id="role_id" name="role_id" required
+                    {% if user.id == current_user.id and current_user.has_role('superadmin') %} disabled title="Cannot change your own role as Superadmin" {% endif %}>
+                    {% for role in roles %}
+                        <option value="{{ role.id }}" {% if user.role_id == role.id %} selected {% endif %}>
+                            {{ role.name.capitalize() }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if user.is_active %} checked {% endif %}
+                    {% if user.id == current_user.id %} disabled title="Cannot toggle your own status" {% endif %}>
+                <label class="form-check-label" for="is_active">Active Account</label>
+            </div>
+            <button type="submit" class="btn btn-success">Update User</button>
+            <a href="{{ url_for('admin.manage_users') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+                        <option value="{{ role.id }}" {% if user.role_id == role.id %} selected {% endif %}>
+                            {{ role.name.capitalize() }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if user.is_active %} checked {% endif %}
+                    {% if user.id == current_user.id %} disabled title="Cannot toggle your own status" {% endif %}>
+                <label class="form-check-label" for="is_active">Active Account</label>
+            </div>
+            <button type="submit" class="btn btn-success">Update User</button>
+            <a href="{{ url_for('admin.manage_users') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

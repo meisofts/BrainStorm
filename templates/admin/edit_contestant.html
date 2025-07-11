@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Edit Contestant: {{ contestant.name }} for Quiz: {{ quiz.title }}</h2>
+
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        Contestant Details
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.edit_contestant', quiz_id=quiz.id, contestant_id=contestant.id) }}">
+            <div class="mb-3">
+                <label for="name" class="form-label">Contestant Name</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ contestant.name }}" required>
+            </div>
+            <div class="mb-4">
+                <label for="email" class="form-label">Email (Optional)</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ contestant.email if contestant.email else '' }}">
+            </div>
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Update Contestant</button>
+                <a href="{{ url_for('admin.contestant_registration', quiz_id=quiz.id) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

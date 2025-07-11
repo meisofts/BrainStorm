@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Manage Questions for Quiz: {{ quiz.title }}</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{{ url_for('admin.quiz_settings') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Quizzes</a>
+    <a href="{{ url_for('admin.add_question', quiz_id=quiz.id) }}" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Question</a>
+</div>
+
+<div class="card shadow">
+    <div class="card-header bg-dark text-white">
+        Question List
+    </div>
+    <div class="card-body">
+        {% if questions %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Question Text</th>
+                        <th>Correct Answer</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for question in questions %}
+                    <tr>
+                        <td>{{ question.id }}</td>
+                        <td>{{ question.question_text | truncate(70) }}</td>
+                        <td>{{ question.correct_answer.upper() }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.edit_question', quiz_id=quiz.id, question_id=question.id) }}" class="btn btn-sm btn-warning me-2"><i class="fas fa-edit"></i> Edit</a>
+                            <a href="{{ url_for('admin.delete_question', quiz_id=quiz.id, question_id=question.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this question?');"><i class="fas fa-trash-alt"></i> Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No questions found for this quiz. Add one to get started.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

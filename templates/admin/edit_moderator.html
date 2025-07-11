@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Edit Moderator: {{ moderator.username }}</h2>
+
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        Moderator Details
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.edit_moderator', user_id=moderator.id) }}">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" value="{{ moderator.username }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ moderator.email }}" required>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="form-label">New Password (leave blank to keep current)</label>
+                <input type="password" class="form-control" id="password" name="password">
+            </div>
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Update Moderator</button>
+                <a href="{{ url_for('admin.moderator_list') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

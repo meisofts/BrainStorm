@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Manage Moderators</h2>
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="{{ url_for('admin.add_moderator') }}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add New Moderator</a>
+</div>
+
+<div class="card shadow">
+    <div class="card-header bg-dark text-white">
+        Moderator List
+    </div>
+    <div class="card-body">
+        {% if moderators %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mod in moderators %}
+                    <tr>
+                        <td>{{ mod.id }}</td>
+                        <td>{{ mod.username }}</td>
+                        <td>{{ mod.email }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.edit_moderator', user_id=mod.id) }}" class="btn btn-sm btn-warning me-2"><i class="fas fa-edit"></i> Edit</a>
+                            <a href="{{ url_for('admin.disable_moderator', user_id=mod.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to disable (delete) this moderator?');"><i class="fas fa-ban"></i> Disable</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No moderators found. Add one using the button above.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Admin Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-info shadow">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-scroll"></i> Total Quizzes</h5>
+                <p class="card-text fs-2">{{ total_quizzes }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-success shadow">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-users-cog"></i> Total Users</h5>
+                <p class="card-text fs-2">{{ total_users }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-warning shadow">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-user-friends"></i> Total Contestants</h5>
+                <p class="card-text fs-2">{{ total_contestants }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                Upcoming Quizzes
+            </div>
+            <div class="card-body">
+                {% if upcoming_quizzes %}
+                <ul class="list-group list-group-flush">
+                    {% for quiz in upcoming_quizzes %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ quiz.title }}</strong> - <small>{{ quiz.description }}</small><br>
+                            <small class="text-muted">Date: {{ quiz.quiz_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        <a href="{{ url_for('admin.manage_questions', quiz_id=quiz.id) }}" class="btn btn-sm btn-outline-primary">Manage</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No upcoming quizzes scheduled.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin.add_quiz') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Quiz</a>
+                    <a href="{{ url_for('admin.add_moderator') }}" class="btn btn-success"><i class="fas fa-user-plus"></i> Add Moderator</a>
+                    <a href="{{ url_for('admin.quiz_settings') }}" class="btn btn-info"><i class="fas fa-cog"></i> Manage Quizzes</a>
+                    <a href="{{ url_for('admin.moderator_list') }}" class="btn btn-warning"><i class="fas fa-users"></i> View Moderators</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{# app/templates/admin/manage_admins.html #}
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Manage Admin Users</h2>
+        <a href="{{ url_for('admin.add_admin') }}" class="btn btn-primary">Add New Admin</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if admins %}
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for admin in admins %}
+            <tr>
+                <td>{{ admin.id }}</td>
+                <td>{{ admin.username }}</td>
+                <td>{{ admin.email }}</td>
+                <td>
+                    <a href="{{ url_for('admin.change_admin_password', admin_id=admin.id) }}" class="btn btn-sm btn-info me-2">Change Password</a>
+                    <form action="{{ url_for('admin.delete_admin', admin_id=admin.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete admin {{ admin.username }}? This action cannot be undone and will permanently remove the user.');">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No admin users found. Please add a new admin.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

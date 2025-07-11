@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">Moderator Dashboard</h1>
+            <p class="lead">Welcome, {{ current_user.username }}!</p>
+            <p>Overview of quizzes that are currently active,scheduled, or completed.</p>
+
+            <hr>
+
+            <h2>Active & Upcoming Quizzes</h2>
+            {% if quizzes %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Quiz Title</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Contestants (Completed/Total)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quiz_item in quizzes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ quiz_item.title }}</strong>
+                                    <p class="mb-0 text-muted small">{{ quiz_item.description | default("No description provided.", true) }}</p>
+                                </td>
+                                <td>{{ quiz_item.quiz_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td><span class="badge {{ quiz_item.status_badge_class }}">{{ quiz_item.quiz_status }}</span></td>
+                                <td>{{ quiz_item.completed_contestants }} / {{ quiz_item.total_contestants }}</td>
+                                <td>
+                                    <a href="{{ url_for('moderator.quiz_session', quiz_id=quiz_item['id']) }}" class="btn btn-primary btn-sm me-2">Manage Session</a>
+                                    <a href="{{ url_for('moderator.quiz_results', quiz_id=quiz_item['id']) }}" class="btn btn-info btn-sm">View Results</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info" role="alert">
+                    No active or upcoming quizzes found.
+                </div>
+            {% endif %}
+
+            <hr>
+
+            <h2>Global Statistics</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card text-center mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Quizzes In System</h5>
+                            <p class="card-text fs-1">{{ total_quizzes_system | default(0) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Active/Upcoming on Dashboard</h5>
+                            <p class="card-text fs-1">{{ active_dashboard_quizzes | default(0) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Registered Contestants</h5>
+                            <p class="card-text fs-1">{{ total_registered_contestants | default(0) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

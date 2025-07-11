@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Quiz Results for {{ quiz.title }}</h2>
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">
+        Final Scores
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Contestant Name</th>
+                        <th>Score</th>
+                        <th>Percentage</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {# Loop through the 'results' list prepared in the Flask route #}
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.rank }}</td>
+                        <td>{{ result.name }}</td>
+                        <td>{{ result.score }} / {{ total_questions_count }}</td>
+                        <td>
+                            {% if total_questions_count > 0 %}
+                                {# Calculate percentage: (score / total_questions) * 100 #}
+                                {% set percentage = (result.score / total_questions_count) * 100 %}
+                                {{ '%.0f' | format(percentage) }}% {# Format to 0 decimal places #}
+                            {% else %}
+                                0% {# Handle case with no questions to avoid division by zero #}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if result.status == 'Completed' %}
+                                <span class="badge bg-success">Completed</span>
+                            {% else %}
+                                <span class="badge bg-warning">In Progress</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{{ url_for('moderator.dashboard') }}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

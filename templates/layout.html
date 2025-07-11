@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrainStorm System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+        .wrapper {
+            flex: 1;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #343a40;
+            color: white;
+            padding-top: 20px;
+            flex-shrink: 0;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+            color: white;
+        }
+        .sidebar .active {
+            background-color: #007bff;
+            border-radius: 5px;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .flash-messages {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">BrainStorm</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="nav-link">Welcome, {{ current_user.username }} ({{ current_user.role.name.title() }})</span>
+                        </li>
+                        {# ADD THIS NEW NAVIGATION ITEM #}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'auth.change_password' %}active{% endif %}" href="{{ url_for('auth.change_password') }}">
+                                <i class="fas fa-key"></i> Change Password
+                            </a>
+                        </li>
+                        {# END NEW NAVIGATION ITEM #}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="wrapper">
+        {% if current_user.is_authenticated %}
+        <div class="sidebar">
+            <ul class="nav flex-column">
+                {% if current_user.has_role('admin') or current_user.has_role('superadmin') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                {# ADD THIS NEW BLOCK FOR SUPERADMIN ONLY #}
+                {% if current_user.has_role('superadmin') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if 'manage_admins' in request.endpoint or 'add_admin' in request.endpoint or 'change_admin_password' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.manage_admins') }}">
+                        <i class="fas fa-user-shield"></i> Manage Admins
+                    </a>
+                </li>
+                {% endif %}
+                {# END NEW BLOCK #}
+                <li class="nav-item">
+                    <a class="nav-link {% if 'moderator' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.moderator_list') }}">
+                        <i class="fas fa-user-tie"></i> Manage Moderators
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'quiz_settings' in request.endpoint or 'question' in request.endpoint or 'contestant_registration' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.quiz_settings') }}">
+                        <i class="fas fa-question-circle"></i> Manage Quizzes
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if current_user.has_role('moderator') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'moderator.dashboard' %}active{% endif %}" href="{{ url_for('moderator.dashboard') }}">
+                        <i class="fas fa-columns"></i> Moderator Dashboard
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <main class="main-content">
+            <div class="container-fluid">
+                <div class="flash-messages">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
