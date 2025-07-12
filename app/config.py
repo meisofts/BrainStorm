@@ -6,4 +6,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
+<<<<<<< HEAD
 #.env SECRET_KEY="your_key"  ==> Key for .env file
+=======
+#.env SECRET_KEY="you_key"  ==> Key for .env file
+>>>>>>> 5fb4167a4de3fb9fa01850184040d4c1cbcae939
