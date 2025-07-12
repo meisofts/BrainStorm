@@ -2,8 +2,8 @@ import os
 
 class Config:
     # SECRET_KEY = os.getenv('SECRET_KEY', 'your_key')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgres://u94dq3e3mvlrt1:p6895032c41a82e9bad3851c9310c4d0f9739365f1db33e5f37694e6331e34260@c7itisjfjj8ril.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dat61u9e97a6n5')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://yourDBName:yourDBPass@localhost:5432/yourDB')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
-#.env SECRET_KEY="you_key"  ==> Key for .env file#
+#.env SECRET_KEY="your_key"  ==> Key for .env file
